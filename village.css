@@ -1,0 +1,479 @@
+/* ==========================================================================
+   VILLAGE — the settling in. Third movement.
+   9:16 portrait opens to 21:9 ultrawide, then settles into a 3:2 photograph.
+   Palette borrowed from warm earth: clay, cream, olive, stone.
+   ========================================================================== */
+
+
+/* --------------------------------------------------------------------------
+   1. SECTION SHELL
+   -------------------------------------------------------------------------- */
+
+.village {
+    position: relative;
+    background: var(--c-void);
+}
+
+/* The scroll runway. Its height is set by village.js (in vh). */
+.village__runway {
+    position: relative;
+    height: 520vh;
+    /* replaced by JS on first paint */
+}
+
+/* Sticky stage — pinned for the entire runway. */
+.village__sticky {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow: hidden;
+    /* A warm earth haze — distinct from fuji's blossom pink. */
+    background:
+        radial-gradient(140% 90% at 50% 58%,
+            rgba(200, 118, 84, 0.055) 0%,
+            rgba(180, 140, 90, 0.018) 42%,
+            transparent 72%),
+        var(--c-void);
+}
+
+
+/* --------------------------------------------------------------------------
+   2. THE FRAME
+   -------------------------------------------------------------------------- */
+
+.village__frame {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate3d(-50%, -50%, 0);
+    overflow: hidden;
+    border-radius: 2px;
+    background: #000;
+    box-shadow:
+        0 0 0 1px rgba(200, 118, 84, 0.20),
+        0 40px 120px -40px rgba(200, 118, 84, 0.24),
+        0 0 220px -60px rgba(220, 160, 110, 0.32);
+    will-change: width, height;
+    backface-visibility: hidden;
+}
+
+.village__canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* Warm halo around the frame */
+.village__glow {
+    position: absolute;
+    inset: -22%;
+    pointer-events: none;
+    z-index: -1;
+    background: radial-gradient(closest-side,
+            rgba(200, 118, 84, 0.16),
+            rgba(220, 160, 110, 0.06) 45%,
+            transparent 76%);
+}
+
+/* Gentle vignette on the frame itself */
+.village__vignette {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(132% 100% at 50% 42%,
+            transparent 50%,
+            rgba(30, 18, 10, 0.34) 100%);
+}
+
+
+/* --------------------------------------------------------------------------
+   3. CAPTIONS
+   -------------------------------------------------------------------------- */
+
+.village__captions {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.village__caption {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    margin: 0;
+    width: min(88vw, 720px);
+    text-align: center;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(22px, 3vw, 44px);
+    line-height: 1.18;
+    letter-spacing: -0.018em;
+    color: #fff4ea;
+    opacity: 0;
+    transform: translate3d(-50%, -50%, 0);
+    text-shadow:
+        0 2px 44px rgba(40, 20, 10, 0.9),
+        0 1px 14px rgba(30, 15, 8, 0.65);
+    will-change: opacity, transform;
+}
+
+
+/* --------------------------------------------------------------------------
+   4. EYEBROW + ARRIVAL LINE
+   -------------------------------------------------------------------------- */
+
+.village__eyebrow {
+    position: absolute;
+    left: 50%;
+    top: clamp(76px, 11vh, 118px);
+    transform: translateX(-50%);
+    margin: 0;
+    font-family: var(--font-sans);
+    font-weight: 400;
+    font-size: 10px;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    color: #c87654;
+    opacity: 0;
+    will-change: opacity;
+}
+
+.village__arrival {
+    position: absolute;
+    left: 50%;
+    bottom: clamp(58px, 11vh, 112px);
+    transform: translateX(-50%);
+    margin: 0;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: clamp(14px, 1.25vw, 19px);
+    letter-spacing: 0.015em;
+    color: rgba(255, 244, 234, 0.78);
+    opacity: 0;
+    white-space: nowrap;
+    will-change: opacity;
+}
+
+
+/* ==========================================================================
+   5. CAROUSEL — eight moments revealed as you scroll
+   Full-bleed slides, horizontal transitions, image parallax.
+   ========================================================================== */
+
+.village__carousel {
+    position: relative;
+    padding:
+        clamp(100px, 15vh, 180px) 0 clamp(80px, 12vh, 140px);
+    background: var(--c-void);
+}
+
+.village__carousel-head {
+    max-width: 820px;
+    margin: 0 0 clamp(48px, 7vw, 96px);
+    padding: 0 var(--gutter);
+}
+
+.village__carousel-eyebrow {
+    margin: 0 0 20px;
+    font-size: 10px;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: #c87654;
+}
+
+.village__carousel-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(34px, 5vw, 74px);
+    line-height: 1.02;
+    letter-spacing: -0.025em;
+    color: var(--c-ink);
+}
+
+
+/* --------------------------------------------------------------------------
+   RUNWAY + STICKY
+   -------------------------------------------------------------------------- */
+
+.village__carousel-runway {
+    position: relative;
+    height: 1000vh;
+    /* replaced by JS on first paint */
+}
+
+.village__carousel-sticky {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow: hidden;
+    background: var(--c-void);
+}
+
+.village__slides {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+}
+
+
+/* --------------------------------------------------------------------------
+   SLIDE
+   -------------------------------------------------------------------------- */
+
+.slide {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    will-change: transform;
+    transform-origin: center center;
+    backface-visibility: hidden;
+}
+
+.slide__media {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+}
+
+.slide__media img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    will-change: transform;
+    /* Base scale gives the parallax translate room without exposing edges. */
+    transform: scale(1.4);
+}
+
+.slide__scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background: linear-gradient(180deg,
+            rgba(12, 8, 6, 0.08) 0%,
+            rgba(12, 8, 6, 0.24) 42%,
+            rgba(12, 8, 6, 0.78) 78%,
+            rgba(12, 8, 6, 0.92) 100%);
+    pointer-events: none;
+}
+
+
+/* --------------------------------------------------------------------------
+   SLIDE CONTENT — text sits directly on the image
+   -------------------------------------------------------------------------- */
+
+.slide__content {
+    position: absolute;
+    z-index: 3;
+    left: clamp(24px, 6vw, 96px);
+    right: clamp(24px, 6vw, 96px);
+    bottom: clamp(72px, 13vh, 130px);
+    max-width: min(720px, 60vw);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    color: #fff6ec;
+    pointer-events: auto;
+}
+
+.slide__index {
+    font-family: var(--font-sans);
+    font-size: 10px;
+    letter-spacing: 0.36em;
+    text-transform: uppercase;
+    color: rgba(255, 246, 236, 0.66);
+}
+
+.slide__title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(30px, 4.4vw, 68px);
+    line-height: 1.02;
+    letter-spacing: -0.028em;
+    color: #fff6ec;
+    text-shadow: 0 2px 34px rgba(0, 0, 0, 0.55);
+}
+
+.slide__text {
+    margin: 0;
+    max-width: 42ch;
+    font-size: clamp(14px, 1.05vw, 16px);
+    line-height: 1.7;
+    color: rgba(255, 246, 236, 0.78);
+    text-shadow: 0 1px 18px rgba(0, 0, 0, 0.45);
+}
+
+
+/* --------------------------------------------------------------------------
+   CTA — a quiet text-link style button
+   -------------------------------------------------------------------------- */
+
+.slide__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    align-self: flex-start;
+    margin-top: 8px;
+    padding: 0 0 8px;
+    border: 0;
+    background: none;
+    font-family: var(--font-sans);
+    font-size: 11px;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: #fff6ec;
+    border-bottom: 1px solid rgba(255, 246, 236, 0.34);
+    cursor: pointer;
+    transition:
+        color 400ms var(--ease),
+        border-color 400ms var(--ease);
+}
+
+.slide__cta svg {
+    transition: transform 500ms var(--ease);
+}
+
+@media (hover: hover) {
+    .slide__cta:hover {
+        color: #fff;
+        border-bottom-color: #fff;
+    }
+
+    .slide__cta:hover svg {
+        transform: translateX(4px);
+    }
+}
+
+
+/* --------------------------------------------------------------------------
+   PROGRESS — count + thin bar
+   -------------------------------------------------------------------------- */
+
+.village__progress {
+    position: absolute;
+    z-index: 4;
+    left: clamp(24px, 6vw, 96px);
+    right: clamp(24px, 6vw, 96px);
+    bottom: clamp(28px, 5vh, 52px);
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    pointer-events: none;
+}
+
+.village__progress-count {
+    font-family: var(--font-sans);
+    font-size: 11px;
+    letter-spacing: 0.24em;
+    color: rgba(255, 246, 236, 0.72);
+    font-variant-numeric: tabular-nums;
+    min-width: 72px;
+    text-align: right;
+    order: 2;
+}
+
+.village__progress-bar {
+    position: relative;
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 246, 236, 0.16);
+    overflow: hidden;
+    order: 1;
+}
+
+.village__progress-fill {
+    position: absolute;
+    inset: 0;
+    background: #c87654;
+    transform: scaleX(0);
+    transform-origin: left center;
+    will-change: transform;
+}
+
+
+/* ==========================================================================
+   6. RESPONSIVE
+   ========================================================================== */
+
+@media (max-width: 1100px) {
+
+    .slide__content {
+        max-width: 72vw;
+    }
+
+    .village__progress-count {
+        min-width: 66px;
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 640px) {
+
+    .village__carousel {
+        padding-top: clamp(70px, 12vh, 110px);
+    }
+
+    .slide__content {
+        left: 22px;
+        right: 22px;
+        bottom: clamp(88px, 16vh, 140px);
+        max-width: none;
+        gap: 14px;
+    }
+
+    .slide__title {
+        font-size: clamp(26px, 8.4vw, 40px);
+    }
+
+    .slide__text {
+        font-size: 13.5px;
+        line-height: 1.62;
+    }
+
+    .slide__cta {
+        font-size: 10px;
+        letter-spacing: 0.22em;
+        padding-bottom: 6px;
+    }
+
+    .village__progress {
+        left: 22px;
+        right: 22px;
+        bottom: 24px;
+        gap: 14px;
+    }
+
+    .village__progress-count {
+        min-width: 58px;
+        font-size: 10px;
+        letter-spacing: 0.2em;
+    }
+
+    .village__caption {
+        font-size: clamp(20px, 5.5vw, 30px);
+    }
+
+    .village__arrival {
+        font-size: 12px;
+        white-space: normal;
+        text-align: center;
+        width: 80vw;
+    }
+}
+
+
+/* ==========================================================================
+   7. REDUCED MOTION
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .village__frame,
+    .slide,
+    .slide__media img,
+    .slide__cta {
+        transition: none;
+    }
+}

@@ -1,0 +1,868 @@
+/* ==========================================================================
+   ZENIN — cinematic scroll experience
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. TOKENS
+   -------------------------------------------------------------------------- */
+
+:root {
+    /* Palette — pulled from the frame sequence */
+    --c-void: #07070a;
+    --c-charcoal: #0c0c11;
+    --c-slate: #121219;
+    --c-card: #0e0e14;
+
+    --c-ink: #f2efec;
+    --c-ink-2: rgba(242, 239, 236, 0.68);
+    --c-ink-3: rgba(242, 239, 236, 0.42);
+    --c-ink-4: rgba(242, 239, 236, 0.20);
+
+    --c-lavender: #b9a9d4;
+    --c-violet: #7a6ba3;
+    --c-pink: #d9a8b6;
+    --c-blue: #93a9c6;
+
+    --line: rgba(242, 239, 236, 0.08);
+    --line-2: rgba(242, 239, 236, 0.16);
+
+    /* Type */
+    --font-display: "Instrument Serif", "Iowan Old Style", Palatino,
+        "Palatino Linotype", Georgia, serif;
+    --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system,
+        "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+    /* Rhythm */
+    --gutter: clamp(20px, 4.5vw, 80px);
+    --radius: 3px;
+    --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+
+/* --------------------------------------------------------------------------
+   2. RESET / BASE
+   -------------------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    overflow-x: clip;
+    scrollbar-gutter: stable;
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--c-void);
+    color: var(--c-ink);
+    font-family: var(--font-sans);
+    font-weight: 300;
+    font-size: 16px;
+    line-height: 1.65;
+    letter-spacing: 0.002em;
+    overflow-x: clip;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Lock the page while the first frames arrive */
+body.is-loading {
+    overflow: hidden;
+    height: 100vh;
+}
+
+img,
+canvas {
+    display: block;
+    max-width: 100%;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+::selection {
+    background: rgba(185, 169, 212, 0.28);
+    color: #fff;
+}
+
+
+/* --------------------------------------------------------------------------
+   3. LOADING
+   -------------------------------------------------------------------------- */
+
+.loader {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    background: var(--c-void);
+    transition: opacity 900ms var(--ease), visibility 900ms var(--ease);
+}
+
+.loader.is-done {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.loader__inner {
+    width: min(360px, 74vw);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.loader__brand {
+    font-family: var(--font-display);
+    font-size: clamp(30px, 4vw, 42px);
+    letter-spacing: 0.22em;
+    color: var(--c-ink);
+    margin-bottom: 4px;
+}
+
+.loader__meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--c-ink-3);
+}
+
+.loader__track {
+    position: relative;
+    height: 1px;
+    background: rgba(242, 239, 236, 0.10);
+    overflow: hidden;
+}
+
+.loader__bar {
+    position: absolute;
+    inset: 0;
+    display: block;
+    background: linear-gradient(90deg, var(--c-violet), var(--c-lavender));
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 320ms var(--ease);
+}
+
+
+/* --------------------------------------------------------------------------
+   4. NAVIGATION
+   -------------------------------------------------------------------------- */
+
+.nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: clamp(18px, 2.6vw, 34px) var(--gutter);
+    transition: background 600ms var(--ease), backdrop-filter 600ms var(--ease),
+        border-color 600ms var(--ease);
+    border-bottom: 1px solid transparent;
+}
+
+.nav.is-scrolled {
+    background: rgba(7, 7, 10, 0.55);
+    backdrop-filter: blur(14px) saturate(1.2);
+    -webkit-backdrop-filter: blur(14px) saturate(1.2);
+    border-bottom-color: var(--line);
+}
+
+.nav__brand {
+    font-family: var(--font-display);
+    font-size: 17px;
+    letter-spacing: 0.28em;
+    color: var(--c-ink);
+    transition: opacity 400ms var(--ease);
+}
+
+.nav__links {
+    display: flex;
+    align-items: center;
+    gap: clamp(16px, 2.4vw, 38px);
+}
+
+.nav__links a {
+    position: relative;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--c-ink-3);
+    transition: color 400ms var(--ease);
+}
+
+.nav__links a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -6px;
+    width: 100%;
+    height: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: right center;
+    transition: transform 500ms var(--ease);
+}
+
+.nav__links a:hover {
+    color: var(--c-ink);
+}
+
+.nav__links a:hover::after {
+    transform: scaleX(1);
+    transform-origin: left center;
+}
+
+@media (max-width: 620px) {
+    .nav__links {
+        gap: 13px;
+    }
+
+    .nav__links a {
+        font-size: 9.5px;
+        letter-spacing: 0.14em;
+    }
+
+    .nav__brand {
+        font-size: 14px;
+        letter-spacing: 0.22em;
+    }
+}
+
+
+/* --------------------------------------------------------------------------
+   5. CINEMATIC STAGE
+   -------------------------------------------------------------------------- */
+
+.stage {
+    position: fixed;
+    inset: 0;
+    z-index: 5;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.frame {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 320px;
+    /* replaced by JS on first paint */
+    height: 568px;
+    transform: translate3d(-50%, -50%, 0);
+    overflow: hidden;
+    border-radius: 2px;
+    background: #000;
+    box-shadow:
+        0 0 0 1px rgba(242, 239, 236, 0.07),
+        0 40px 110px -46px rgba(0, 0, 0, 0.85);
+    will-change: transform;
+    backface-visibility: hidden;
+}
+
+.frame__canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.frame__vignette {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(130% 100% at 50% 50%,
+            transparent 42%,
+            rgba(0, 0, 0, 0.40) 100%);
+}
+
+
+/* --------------------------------------------------------------------------
+   6. CAPTIONS
+   -------------------------------------------------------------------------- */
+
+.captions {
+    position: fixed;
+    inset: 0;
+    z-index: 6;
+    pointer-events: none;
+}
+
+.caption {
+    position: absolute;
+    left: 50%;
+    bottom: clamp(44px, 11vh, 118px);
+    margin: 0;
+    width: min(88vw, 620px);
+    text-align: center;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(22px, 3.1vw, 42px);
+    line-height: 1.24;
+    letter-spacing: -0.012em;
+    color: var(--c-ink);
+    opacity: 0;
+    transform: translate3d(-50%, 14px, 0);
+    text-shadow:
+        0 2px 34px rgba(0, 0, 0, 0.9),
+        0 1px 8px rgba(0, 0, 0, 0.65);
+    will-change: opacity, transform;
+}
+
+
+/* --------------------------------------------------------------------------
+   7. SPACER
+   -------------------------------------------------------------------------- */
+
+.cinematic {
+    height: 470vh;
+    /* JS replaces this with an exact pixel value */
+}
+
+
+/* --------------------------------------------------------------------------
+   8. CONTENT SHELL
+   -------------------------------------------------------------------------- */
+
+.content {
+    position: relative;
+    z-index: 2;
+    background: var(--c-void);
+}
+
+
+/* --------------------------------------------------------------------------
+   9. BENTO
+   -------------------------------------------------------------------------- */
+
+.bento {
+    padding:
+        clamp(120px, 18vh, 220px) var(--gutter) clamp(80px, 12vh, 150px);
+}
+
+.bento__head {
+    max-width: 780px;
+    margin-bottom: clamp(48px, 7vw, 96px);
+}
+
+.eyebrow {
+    margin: 0 0 18px;
+    font-size: 10px;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--c-ink-3);
+}
+
+.bento__title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(34px, 5vw, 74px);
+    line-height: 1.02;
+    letter-spacing: -0.025em;
+    color: var(--c-ink);
+}
+
+.bento__grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: clamp(12px, 1.1vw, 20px);
+}
+
+/* --- Card base --- */
+.card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 16px;
+    padding: clamp(24px, 2.4vw, 42px);
+    background: linear-gradient(180deg,
+            rgba(255, 255, 255, 0.030),
+            rgba(255, 255, 255, 0.008));
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: border-color 700ms var(--ease), background 700ms var(--ease);
+}
+
+.card__title {
+    position: relative;
+    z-index: 2;
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(23px, 2.3vw, 38px);
+    line-height: 1.13;
+    letter-spacing: -0.018em;
+    color: var(--c-ink);
+}
+
+.card__text {
+    position: relative;
+    z-index: 2;
+    margin: 0;
+    max-width: 44ch;
+    font-size: clamp(13px, 0.95vw, 15px);
+    line-height: 1.72;
+    color: var(--c-ink-2);
+}
+
+@media (hover: hover) {
+    .card:hover {
+        border-color: var(--line-2);
+        background: linear-gradient(180deg,
+                rgba(255, 255, 255, 0.052),
+                rgba(255, 255, 255, 0.014));
+    }
+}
+
+/* --- Grid placement --- */
+.card--a {
+    grid-column: span 7;
+    min-height: 330px;
+}
+
+.card--b {
+    grid-column: span 5;
+    min-height: 330px;
+}
+
+.card--c {
+    grid-column: span 4;
+    min-height: 280px;
+}
+
+.card--d {
+    grid-column: span 8;
+    grid-row: span 2;
+    min-height: 580px;
+}
+
+.card--e {
+    grid-column: span 4;
+    min-height: 280px;
+}
+
+.card--f {
+    grid-column: span 6;
+    min-height: 250px;
+}
+
+.card--g {
+    grid-column: span 6;
+    min-height: 250px;
+}
+
+/* --- Visual card --- */
+.card--visual {
+    justify-content: flex-end;
+}
+
+.card--visual::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("frames/ezgif-frame-247.jpg");
+    background-size: cover;
+    background-position: center 42%;
+    opacity: 0.30;
+    transform: scale(1.03);
+    filter: saturate(0.72) contrast(1.06);
+    transition: opacity 900ms var(--ease), transform 1400ms var(--ease);
+}
+
+.card--visual::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg,
+            rgba(7, 7, 10, 0.30) 0%,
+            rgba(7, 7, 10, 0.80) 58%,
+            rgba(7, 7, 10, 0.96) 100%);
+}
+
+@media (hover: hover) {
+    .card--visual:hover::before {
+        opacity: 0.42;
+        transform: scale(1.06);
+    }
+}
+
+.card--visual .card__body {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+
+/* --------------------------------------------------------------------------
+   10. CLOSING
+   -------------------------------------------------------------------------- */
+
+.closing {
+    position: relative;
+    padding:
+        clamp(100px, 16vh, 200px) var(--gutter) clamp(80px, 12vh, 150px);
+    border-top: 1px solid var(--line);
+}
+
+.closing__inner {
+    max-width: 1100px;
+}
+
+.closing__lede {
+    margin: 0 0 clamp(22px, 3vw, 40px);
+    font-size: clamp(14px, 1.15vw, 17px);
+    line-height: 1.7;
+    color: var(--c-ink-2);
+    max-width: 42ch;
+}
+
+.closing__title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(38px, 7.6vw, 118px);
+    line-height: 0.98;
+    letter-spacing: -0.032em;
+    color: var(--c-ink);
+}
+
+.closing__sign {
+    margin: clamp(40px, 6vw, 84px) 0 0;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: clamp(20px, 2.2vw, 32px);
+    color: var(--c-ink-3);
+    letter-spacing: -0.01em;
+}
+
+
+/* --------------------------------------------------------------------------
+   11. FOOTER
+   -------------------------------------------------------------------------- */
+
+.footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    padding: clamp(26px, 3vw, 44px) var(--gutter);
+    border-top: 1px solid var(--line);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--c-ink-3);
+}
+
+.footer__brand {
+    font-family: var(--font-display);
+    font-size: 15px;
+    letter-spacing: 0.28em;
+    color: var(--c-ink);
+}
+
+.footer__note {
+    letter-spacing: 0.14em;
+    text-transform: none;
+    font-size: 12px;
+}
+
+
+/* --------------------------------------------------------------------------
+   12. REVEALS
+   -------------------------------------------------------------------------- */
+
+[data-reveal] {
+    opacity: 0;
+    transform: translate3d(0, 26px, 0);
+    transition:
+        opacity 1000ms var(--ease) var(--d, 0ms),
+        transform 1000ms var(--ease) var(--d, 0ms);
+}
+
+[data-reveal].is-visible {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+}
+
+
+/* --------------------------------------------------------------------------
+   13. RESPONSIVE
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 1000px) {
+    .bento__grid {
+        grid-template-columns: repeat(6, 1fr);
+    }
+
+    .card--a {
+        grid-column: span 6;
+        min-height: 280px;
+    }
+
+    .card--b {
+        grid-column: span 3;
+        min-height: 260px;
+    }
+
+    .card--c {
+        grid-column: span 3;
+        min-height: 260px;
+    }
+
+    .card--d {
+        grid-column: span 6;
+        grid-row: auto;
+        min-height: 420px;
+    }
+
+    .card--e {
+        grid-column: span 6;
+        min-height: 220px;
+    }
+
+    .card--f {
+        grid-column: span 3;
+        min-height: 220px;
+    }
+
+    .card--g {
+        grid-column: span 3;
+        min-height: 220px;
+    }
+}
+
+@media (max-width: 640px) {
+    .bento__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .card--a,
+    .card--b,
+    .card--c,
+    .card--d,
+    .card--e,
+    .card--f,
+    .card--g {
+        grid-column: 1 / -1;
+        grid-row: auto;
+        min-height: 0;
+        padding: 28px 24px 32px;
+    }
+
+    .card--d {
+        min-height: 340px;
+    }
+
+    .caption {
+        bottom: 14vh;
+    }
+
+    .footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+}
+
+
+/* --------------------------------------------------------------------------
+   INTRO — editorial content framing the initial window
+   -------------------------------------------------------------------------- */
+
+.intro {
+    position: fixed;
+    inset: 0;
+    z-index: 6;
+    pointer-events: none;
+    will-change: opacity;
+}
+
+.intro.is-hidden {
+    visibility: hidden;
+}
+
+/* --- Columns --- */
+
+.intro__col {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: min(24vw, 320px);
+    pointer-events: auto;
+}
+
+.intro__col--left {
+    left: var(--gutter);
+}
+
+.intro__col--right {
+    right: var(--gutter);
+}
+
+/* --- Left column content --- */
+
+.intro__eyebrow {
+    margin: 0 0 22px;
+    font-size: 10px;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--c-ink-3);
+}
+
+.intro__title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(30px, 3.4vw, 54px);
+    line-height: 1.04;
+    letter-spacing: -0.024em;
+    color: var(--c-ink);
+}
+
+/* --- Right column content --- */
+
+.intro__text {
+    margin: 0 0 30px;
+    font-size: clamp(13px, 0.95vw, 15px);
+    line-height: 1.78;
+    letter-spacing: 0.002em;
+    color: var(--c-ink-2);
+    max-width: 34ch;
+}
+
+.intro__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 9px;
+    font-size: 11px;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--c-ink);
+    border-bottom: 1px solid var(--c-ink-4);
+    transition: color 400ms var(--ease), border-color 400ms var(--ease);
+}
+
+.intro__cta svg {
+    transition: transform 500ms var(--ease);
+}
+
+@media (hover: hover) {
+    .intro__cta:hover {
+        color: #fff;
+        border-bottom-color: var(--c-ink);
+    }
+
+    .intro__cta:hover svg {
+        transform: translateX(4px);
+    }
+}
+
+/* --- Bottom corner details --- */
+
+.intro__corner {
+    position: absolute;
+    bottom: clamp(30px, 4vh, 48px);
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--c-ink-3);
+    pointer-events: none;
+}
+
+.intro__corner--l {
+    left: var(--gutter);
+}
+
+.intro__corner--r {
+    right: var(--gutter);
+}
+
+/* --- Mobile: stack the content above and below the frame --- */
+
+@media (max-width: 900px) {
+
+    .intro__col--left {
+        top: clamp(76px, 10.5vh, 108px);
+        left: var(--gutter);
+        right: var(--gutter);
+        width: auto;
+        transform: none;
+    }
+
+    .intro__col--right {
+        top: auto;
+        bottom: clamp(44px, 7.5vh, 76px);
+        left: var(--gutter);
+        right: var(--gutter);
+        width: auto;
+        transform: none;
+    }
+
+    .intro__eyebrow {
+        margin-bottom: 12px;
+        letter-spacing: 0.28em;
+    }
+
+    .intro__title {
+        font-size: clamp(24px, 7vw, 36px);
+    }
+
+    .intro__text {
+        margin-bottom: 18px;
+        font-size: 12.5px;
+        line-height: 1.65;
+        max-width: 42ch;
+    }
+
+    .intro__cta {
+        font-size: 10px;
+        letter-spacing: 0.22em;
+        padding-bottom: 6px;
+    }
+
+    .intro__corner {
+        display: none;
+    }
+}
+
+
+/* --------------------------------------------------------------------------
+   14. REDUCED MOTION
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    [data-reveal] {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+
+    .card,
+    .card--visual::before {
+        transition: none;
+    }
+}
